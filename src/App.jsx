@@ -53,7 +53,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center py-12 px-4 sm:px-6">
-      <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-400 mb-10 tracking-tight">
+      <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-linear-to-r from-teal-400 to-emerald-400 mb-10 tracking-tight">
         MEDTECH AI
       </h1>
       <div className="w-full max-w-3xl bg-slate-900/50 backdrop-blur-sm rounded-3xl shadow-2xl p-6 md:p-10 space-y-8 border border-slate-800">
