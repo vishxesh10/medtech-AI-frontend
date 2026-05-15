@@ -6,7 +6,9 @@ const LEGACY_BEARER_KEY = 'medtech_bearer_token';
 export function getApiBase() {
   const fromEnv = import.meta.env.VITE_API_BASE_URL;
   const stored = localStorage.getItem(BASE_KEY);
-  const raw = (stored || fromEnv || 'http://127.0.0.1:8001').trim();
+  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const defaultUrl = isLocal ? 'http://127.0.0.1:8001' : 'https://medtech-backend-kppi.onrender.com';
+  const raw = (stored || fromEnv || defaultUrl).trim();
   return raw.replace(/\/$/, '');
 }
 
