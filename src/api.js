@@ -3,21 +3,37 @@ const BASE_KEY = 'medtech_api_base';
 /** Legacy key from old static bearer; cleared on logout. */
 const LEGACY_BEARER_KEY = 'medtech_bearer_token';
 
+// Clean up legacy localStorage API base override if present
+try {
+  localStorage.removeItem(BASE_KEY);
+  localStorage.removeItem(LEGACY_BEARER_KEY);
+} catch {
+  /* ignore */
+}
+
 export function getApiBase() {
   const fromEnv = import.meta.env.VITE_API_BASE_URL;
-  let stored = localStorage.getItem(BASE_KEY);
-  
-  // If user has old port 8001 saved in localStorage, migrate it to port 8000
-  if (stored && stored.includes(':8001')) {
-    stored = stored.replace(':8001', ':8000');
-    localStorage.setItem(BASE_KEY, stored);
+  const isLocal =
+    typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+  if (fromEnv && fromEnv.trim()) {
+    const trimmed = fromEnv.trim().replace(/\/$/, '');
+    // If deployed in production and env still has local proxy '/api', use Render URL
+    if (!isLocal && trimmed === '/api') {
+      return 'https://medtech-backend-kppi.onrender.com';
+    }
+    return trimmed;
   }
 
-  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  // Default to localhost:8000 for local development, or Render URL for production
-  const defaultUrl = isLocal ? 'http://127.0.0.1:8000' : 'https://medtech-backend-kppi.onrender.com';
-  const raw = (fromEnv || stored || defaultUrl).trim();
-  return raw.replace(/\/$/, '');
+  // For local development on localhost, default to Vite dev proxy '/api'
+  // which forwards to port 8000 and avoids all CORS / Brave Shield blocks!
+  if (isLocal) {
+    return '/api';
+  }
+
+  // Production backend URL on Render
+  return 'https://medtech-backend-kppi.onrender.com';
 }
 
 export function getSavedAccessToken() {
@@ -64,13 +80,25 @@ export async function apiFetch(path, options = {}) {
   const headers = { ...extra };
   const token = getAccessToken();
   if (token && !skipAuth) headers.Authorization = `Bearer ${token}`;
-  
-  return fetch(`${getApiBase()}${path}`, {
-    method,
-    body,
-    headers,
-    credentials: 'include', // Include cookies on cross-origin requests
-  });
+
+  const base = getApiBase();
+  const url = `${base}${path}`;
+
+  try {
+    return await fetch(url, {
+      method,
+      body,
+      headers,
+      credentials: 'include', // Include cookies on cross-origin requests
+    });
+  } catch (error) {
+    if (error && (error.name === 'TypeError' || String(error).includes('fetch'))) {
+      throw new Error(
+        `Unable to reach server at ${base}. Please ensure backend is running and reachable.`
+      );
+    }
+    throw error;
+  }
 }
 
 export async function authRegister(email, password) {
