@@ -8,7 +8,7 @@ export default function HistoryPanel({ historyLoading, historyList, loadHistory,
       <div className="history-header">
         <div>
           <h3 className="history-title">Previous prescriptions</h3>
-          <p className="history-sub">Stored per account on the server. Sign in to load your list.</p>
+          <p className="history-sub">Stored securely in your account.</p>
         </div>
         <button
           type="button"
@@ -20,7 +20,7 @@ export default function HistoryPanel({ historyLoading, historyList, loadHistory,
         </button>
       </div>
       {!hasToken ? (
-        <p className="history-empty">Sign in under Settings to see your saved prescriptions.</p>
+        <p className="history-empty">Sign in to see your saved prescriptions.</p>
       ) : historyList.length === 0 && !historyLoading ? (
         <p className="history-empty">No saved prescriptions yet. Analyze an image to create one.</p>
       ) : (
@@ -48,8 +48,12 @@ export default function HistoryPanel({ historyLoading, historyList, loadHistory,
                       : '—'}
                   </td>
                   <td className="history-action">
-                    <button type="button" className="btn-link" onClick={() => openSavedPrescription(row.id)}>
-                      Open
+                    <button
+                      type="button"
+                      className="btn-ghost btn-small"
+                      onClick={() => openSavedPrescription(row.id)}
+                    >
+                      View
                     </button>
                   </td>
                 </tr>

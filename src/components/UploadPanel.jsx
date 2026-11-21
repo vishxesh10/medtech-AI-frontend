@@ -1,5 +1,3 @@
-import { getAccessToken } from '../api';
-
 export default function UploadPanel({
   fileInputRef,
   preview,
@@ -11,28 +9,17 @@ export default function UploadPanel({
   onChange,
   onUpload,
   onClear,
-  onOpenSettings,
 }) {
   return (
     <div className="glass-panel">
       <header className="header">
-        <h1 className="title">MedTech AI</h1>
+        <h1 className="title">MediScan AI</h1>
         <p className="subtitle">
           Upload a prescription to automatically extract medicines, dosages, and frequencies.
         </p>
       </header>
 
       <main>
-        {!getAccessToken() && (
-          <div className="token-hint-banner" role="status">
-            <strong>Sign in required.</strong> Open{' '}
-            <button type="button" className="btn-inline" onClick={onOpenSettings}>
-              Settings
-            </button>{' '}
-            to register or log in. Optional dev: <code>VITE_API_ACCESS_TOKEN</code> in{' '}
-            <code>frontend/.env</code>.
-          </div>
-        )}
         <div
           className={`upload-area ${isDragActive ? 'drag-active' : ''}`}
           onDragEnter={onDrag}

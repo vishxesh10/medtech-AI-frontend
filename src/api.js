@@ -5,10 +5,18 @@ const LEGACY_BEARER_KEY = 'medtech_bearer_token';
 
 export function getApiBase() {
   const fromEnv = import.meta.env.VITE_API_BASE_URL;
-  const stored = localStorage.getItem(BASE_KEY);
+  let stored = localStorage.getItem(BASE_KEY);
+  
+  // If user has old port 8001 saved in localStorage, migrate it to port 8000
+  if (stored && stored.includes(':8001')) {
+    stored = stored.replace(':8001', ':8000');
+    localStorage.setItem(BASE_KEY, stored);
+  }
+
   const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  const defaultUrl = isLocal ? 'http://127.0.0.1:8001' : 'https://medtech-backend-kppi.onrender.com';
-  const raw = (stored || fromEnv || defaultUrl).trim();
+  // Default to localhost:8000 for local development, or Render URL for production
+  const defaultUrl = isLocal ? 'http://127.0.0.1:8000' : 'https://medtech-backend-kppi.onrender.com';
+  const raw = (fromEnv || stored || defaultUrl).trim();
   return raw.replace(/\/$/, '');
 }
 
@@ -56,7 +64,13 @@ export async function apiFetch(path, options = {}) {
   const headers = { ...extra };
   const token = getAccessToken();
   if (token && !skipAuth) headers.Authorization = `Bearer ${token}`;
-  return fetch(`${getApiBase()}${path}`, { method, body, headers });
+  
+  return fetch(`${getApiBase()}${path}`, {
+    method,
+    body,
+    headers,
+    credentials: 'include', // Include cookies on cross-origin requests
+  });
 }
 
 export async function authRegister(email, password) {
@@ -87,6 +101,9 @@ export async function readErrorMessage(response) {
     const data = await response.json();
     if (data?.error?.detail) return data.error.detail;
     if (typeof data?.detail === 'string') return data.detail;
+    if (Array.isArray(data?.detail)) {
+      return data.detail.join(', ');
+    }
   } catch {
     /* ignore */
   }
